@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by 1 on 2016/5/11.
+ * Created by huweiqiang on 2016/5/11.
  */
 public class GridDotViewpager<T> extends LinearLayout {
     private List<T> mData = new ArrayList<>();
@@ -38,6 +38,53 @@ public class GridDotViewpager<T> extends LinearLayout {
         init(attrs);
     }
 
+
+    private int mItemLayoutId;
+    private ConvertView<T> mConvertView;
+
+    public void setDataAndView(List<T> data, int itemLayoutId, ConvertView<T> convertView) {
+        setData(data);
+        mItemLayoutId = itemLayoutId;
+        this.mConvertView = convertView;
+        setPageSize();
+
+        if (mDotViewPagerAdapter == null) {
+            mDotViewPagerAdapter = new DotViewPagerAdapter(getContext(), mPageList, mItemLayoutId, mNumColumns, mConvertView, mOnItemClickListener);
+            mDotViewpager.setAdapter(mDotViewPagerAdapter);
+        } else {
+            mDotViewpager.notifyDataSetChanged();
+        }
+        if (isCycle) {
+            mDotViewpager.reStartCycle();
+        }
+    }
+
+    public void setCycle(boolean cycle) {
+        if (mInited) {
+            throw new RuntimeException("setCycle 必须在 setDataAndView 之前设置");
+        }
+        this.isCycle = cycle;
+    }
+
+    public void notifyDataSetChanged() {
+        mDotViewPagerAdapter.notifyDataSetChanged();
+    }
+
+    public void setNumColumns(int numColumns) {
+        if (mInited) {
+            throw new RuntimeException("setNumColumns 必须在 setDataAndView 之前设置");
+        }
+        if (numColumns < 1) {
+            mNumColumns = 3;
+            return;
+        } else if (numColumns > 10) {
+            mNumColumns = 10;
+            return;
+        }
+
+        mNumColumns = numColumns;
+    }
+
     private void init(AttributeSet attrs) {
         mDotViewpager = new DotViewPager(getContext());
         this.addView(mDotViewpager);
@@ -62,53 +109,14 @@ public class GridDotViewpager<T> extends LinearLayout {
         }
     }
 
-    private int mItemLayoutId;
-    private ConvertView<T> mConvertView;
-
-    public void setDataAndView(List<T> data, int itemLayoutId, ConvertView<T> convertView) {
-        setData(data);
-        mItemLayoutId = itemLayoutId;
-        this.mConvertView = convertView;
-        setPageSize();
-
-        if (mDotViewPagerAdapter == null) {
-            mDotViewPagerAdapter = new DotViewPagerAdapter(getContext(), mPageList, mItemLayoutId, mNumColumns, mConvertView, mOnItemClickListener);
-            mDotViewpager.setAdapter(mDotViewPagerAdapter);
-        } else {
-            mDotViewpager.notifyDataSetChanged();
-        }
-        if (isCycle) {
-            mDotViewpager.reStartCycle();
-        }
-    }
-
-    public void setData(List<T> data) {
+    private void setData(List<T> data) {
         mData.clear();
         mData.addAll(data);
     }
 
-    public void notifyDataSetChanged() {
-        mDotViewPagerAdapter.notifyDataSetChanged();
-    }
-
-    public void setNumColumns(int numColumns) {
-        if (mInited) {
-            throw new RuntimeException("setNumColumns 必须在 setDataAndView 之前设置");
-        }
-        if (numColumns < 1) {
-            mNumColumns = 3;
-            return;
-        } else if (numColumns > 10) {
-            mNumColumns = 10;
-            return;
-        }
-
-        mNumColumns = numColumns;
-    }
-
 
     /**
-     * 设置后点击事件响应不够灵敏 
+     * 设置后点击事件响应不够灵敏
      */
     private AdapterView.OnItemClickListener mOnItemClickListener;
 
@@ -123,10 +131,5 @@ public class GridDotViewpager<T> extends LinearLayout {
 
     private boolean isCycle = false;
 
-    public void setCycle(boolean cycle) {
-        if (mInited) {
-            throw new RuntimeException("setCycle 必须在 setDataAndView 之前设置");
-        }
-        this.isCycle = cycle;
-    }
+
 }
